@@ -5,7 +5,8 @@ require_once "config/Autoload.php";
 // TODO:
 // importar el BO correspondiente
 // instanciar el objeto BO correspondiente
-
+use \bo\Incidencia as IncidenciaBO;
+$incidenciaBO = new IncidenciaBO();
 $registros = [];
 
 /*
@@ -21,6 +22,13 @@ if (
 
     // TODO:
     // llamar al método registrar()
+        $incidenciaBO->registrar(
+        $_POST["usuario"] ?? "",
+        $_POST["asunto"] ?? "",
+        $_POST["prioridad"] ?? ""
+    );
+    header("Location: index.php");
+    exit;
 }
 
 
@@ -37,6 +45,9 @@ if (
 
     // TODO:
     // llamar al método cambiarEstado()
+    $incidenciaBO->cambiarEstado($_POST["id"] ?? "");
+    header("Location: index.php");
+    exit;
 }
 
 
@@ -50,11 +61,14 @@ if (!empty($_GET["buscar"])) {
 
     // TODO:
     // llamar al método buscar()
+    $registros = $incidenciaBO->buscar($_GET["buscar"]);
 
 } else {
 
     // TODO:
     // llamar al método listar()
+    $registros = $incidenciaBO->listar();
+
 }
 
 ?>
@@ -81,6 +95,22 @@ if (!empty($_GET["buscar"])) {
             Aquí van los campos
             correspondientes a la variante
         -->
+          <p>
+            <label for="usuario">Usuario:</label>
+            <input type="text" id="usuario" name="usuario" maxlength="120" required>
+        </p>
+        <p>
+            <label for="asunto">Asunto:</label>
+            <input type="text" id="asunto" name="asunto" maxlength="255" required>
+        </p>
+        <p>
+            <label for="prioridad">Prioridad:</label>
+            <select id="prioridad" name="prioridad" required>
+                <option value="BAJA">Baja</option>
+                <option value="MEDIA" selected>Media</option>
+                <option value="ALTA">Alta</option>
+            </select>
+        </p>   
 
         <button type="submit">
             Registrar
@@ -118,6 +148,12 @@ if (!empty($_GET["buscar"])) {
         <thead>
             <tr>
                 <!-- columnas -->
+            <th>ID</th>
+                <th>Usuario</th>
+                <th>Asunto</th>
+                <th>Prioridad</th>
+                <th>Estado</th>
+                <th>Operaciones</th>
             </tr>
         </thead>
 
@@ -126,9 +162,12 @@ if (!empty($_GET["buscar"])) {
             <?php foreach ($registros as $item): ?>
 
                 <tr>
-
                     <!-- datos -->
-
+                    <td><?= htmlspecialchars((string) $item["id"], ENT_QUOTES, "UTF-8"); ?></td>
+                    <td><?= htmlspecialchars((string) $item["usuario"], ENT_QUOTES, "UTF-8"); ?></td>
+                    <td><?= htmlspecialchars((string) $item["asunto"], ENT_QUOTES, "UTF-8"); ?></td>
+                    <td><?= htmlspecialchars((string) $item["prioridad"], ENT_QUOTES, "UTF-8"); ?></td>
+                    <td><?= htmlspecialchars((string) $item["estado"], ENT_QUOTES, "UTF-8"); ?></td>
                     <td>
 
                         <form method="POST">
