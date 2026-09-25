@@ -1,12 +1,19 @@
 <?php
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 require_once "config/Autoload.php";
 
-// TODO:
-// importar el BO correspondiente
-// instanciar el objeto BO correspondiente
+use Bo\Equipo;
+
+$equipoBO = new Equipo();
+
+$mensaje = '';
 
 $registros = [];
+
 
 /*
 |--------------------------------------------------------------------------
@@ -19,8 +26,38 @@ if (
     && ($_POST["accion"] ?? "") === "registrar"
 ) {
 
-    // TODO:
-    // llamar al método registrar()
+    $codigo = trim(
+        $_POST['codigo'] ?? ''
+    );
+
+    $nombre = trim(
+        $_POST['nombre'] ?? ''
+    );
+
+    $categoria = trim(
+        $_POST['categoria'] ?? ''
+    );
+
+    if (
+        $codigo !== ''
+        && $nombre !== ''
+        && $categoria !== ''
+    ) {
+
+        $equipoBO->registrar(
+            $codigo,
+            $nombre,
+            $categoria
+        );
+
+        header('Location: index.php');
+        exit;
+
+    } else {
+
+        $mensaje =
+            'Complete todos los campos.';
+    }
 }
 
 
@@ -35,8 +72,12 @@ if (
     && ($_POST["accion"] ?? "") === "cambiarEstado"
 ) {
 
-    // TODO:
-    // llamar al método cambiarEstado()
+    $equipoBO->cambiarEstado(
+        (int) ($_POST['id'] ?? 0)
+    );
+
+    header('Location: index.php');
+    exit;
 }
 
 
@@ -46,15 +87,16 @@ if (
 |--------------------------------------------------------------------------
 */
 
-if (!empty($_GET["buscar"])) {
+$textoBuscar = '';
 
-    // TODO:
-    // llamar al método buscar()
+if (!empty($_GET['buscar'])) {
+    $textoBuscar = trim($_GET['buscar']);
+}
 
+if ($textoBuscar !== '') {
+    $registros = $equipoBO->buscar($textoBuscar);
 } else {
-
-    // TODO:
-    // llamar al método listar()
+    $registros = $equipoBO->listar();
 }
 
 ?>
@@ -71,22 +113,54 @@ if (!empty($_GET["buscar"])) {
 
     <h1>Gestión de registros</h1>
 
+
     <!-- FORMULARIO DE REGISTRO -->
 
     <form method="POST">
 
-        <input type="hidden" name="accion" value="registrar">
+        <input
+            type="hidden"
+            name="accion"
+            value="registrar">
 
-        <!--
-            Aquí van los campos
-            correspondientes a la variante
-        -->
+        <label>Código:</label>
+
+        <input
+            type="text"
+            name="codigo"
+            required>
+
+
+        <label>Nombre del equipo:</label>
+
+        <input
+            type="text"
+            name="nombre"
+            required>
+
+
+        <label>Categoría:</label>
+
+        <input
+            type="text"
+            name="categoria"
+            required>
+
 
         <button type="submit">
             Registrar
         </button>
 
     </form>
+
+
+    <?php if ($mensaje !== ''): ?>
+
+        <p>
+            <?= htmlspecialchars($mensaje) ?>
+        </p>
+
+    <?php endif; ?>
 
 
     <hr>
@@ -99,7 +173,8 @@ if (!empty($_GET["buscar"])) {
         <input
             type="text"
             name="buscar"
-            placeholder="Buscar">
+            placeholder="Buscar"
+            value="<?= htmlspecialchars($textoBuscar) ?>">
 
         <button type="submit">
             Buscar
@@ -113,47 +188,97 @@ if (!empty($_GET["buscar"])) {
 
     <!-- LISTADO -->
 
-    <table border="1" cellpadding="5">
+    <table
+        border="1"
+        cellpadding="5"
+        cellspacing="0">
 
         <thead>
+
             <tr>
-                <!-- columnas -->
+
+                <th>ID</th>
+
+                <th>Código</th>
+
+                <th>Nombre</th>
+
+                <th>Categoría</th>
+
+                <th>Estado</th>
+
+                <th>Acción</th>
+
             </tr>
+
         </thead>
+
 
         <tbody>
 
-            <?php foreach ($registros as $item): ?>
+            <?php if (!empty($registros)): ?>
+
+                <?php foreach ($registros as $item): ?>
+
+                    <tr>
+
+                        <td>
+                            <?= htmlspecialchars($item["id"]) ?>
+                        </td>
+
+                        <td>
+                            <?= htmlspecialchars($item["codigo"]) ?>
+                        </td>
+
+                        <td>
+                            <?= htmlspecialchars($item["nombre"]) ?>
+                        </td>
+
+                        <td>
+                            <?= htmlspecialchars($item["categoria"]) ?>
+                        </td>
+
+                        <td>
+                            <?= htmlspecialchars($item["estado"]) ?>
+                        </td>
+
+                        <td>
+
+                            <form method="POST">
+
+                                <input
+                                    type="hidden"
+                                    name="accion"
+                                    value="cambiarEstado">
+
+                                <input
+                                    type="hidden"
+                                    name="id"
+                                    value="<?= $item["id"] ?>">
+
+                                <button type="submit">
+                                    Cambiar estado
+                                </button>
+
+                            </form>
+
+                        </td>
+
+                    </tr>
+
+                <?php endforeach; ?>
+
+            <?php else: ?>
 
                 <tr>
 
-                    <!-- datos -->
-
-                    <td>
-
-                        <form method="POST">
-
-                            <input
-                                type="hidden"
-                                name="accion"
-                                value="cambiarEstado">
-
-                            <input
-                                type="hidden"
-                                name="id"
-                                value="<?= $item["id"] ?>">
-
-                            <button type="submit">
-                                Cambiar estado
-                            </button>
-
-                        </form>
-
+                    <td colspan="6">
+                        No hay registros para mostrar.
                     </td>
 
                 </tr>
 
-            <?php endforeach; ?>
+            <?php endif; ?>
 
         </tbody>
 
