@@ -1,60 +1,42 @@
 <?php
-
 require_once "config/Autoload.php";
 
-// TODO:
-// importar el BO correspondiente
-// instanciar el objeto BO correspondiente
+use bo\Incidencia as IncidenciaBO;
+
+$incidenciaBO = new IncidenciaBO();
 
 $registros = [];
 
-/*
-|--------------------------------------------------------------------------
-| REGISTRAR
-|--------------------------------------------------------------------------
-*/
+// registros
 
 if (
     $_SERVER["REQUEST_METHOD"] === "POST"
     && ($_POST["accion"] ?? "") === "registrar"
 ) {
 
-    // TODO:
-    // llamar al método registrar()
+    $incidenciaBO->registrar($_POST["usuario"], $_POST["asunto"], $_POST["prioridad"]);
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| CAMBIAR ESTADO
-|--------------------------------------------------------------------------
-*/
+//cambio de estados
 
 if (
     $_SERVER["REQUEST_METHOD"] === "POST"
     && ($_POST["accion"] ?? "") === "cambiarEstado"
 ) {
 
-    // TODO:
-    // llamar al método cambiarEstado()
+    $incidenciaBO->cambiarEstado($_POST["id"]);
 }
 
-
-/*
-|--------------------------------------------------------------------------
-| BUSCAR / LISTAR
-|--------------------------------------------------------------------------
-*/
+//buscar y listar
 
 if (!empty($_GET["buscar"])) {
 
-    // TODO:
-    // llamar al método buscar()
+    $registros = $incidenciaBO->buscar($_GET["buscar"]);
 
 } else {
 
-    // TODO:
-    // llamar al método listar()
+    $registros = $incidenciaBO->listar();
 }
 
 ?>
@@ -71,16 +53,21 @@ if (!empty($_GET["buscar"])) {
 
     <h1>Gestión de registros</h1>
 
-    <!-- FORMULARIO DE REGISTRO -->
+    Formulario de registro
 
     <form method="POST">
 
         <input type="hidden" name="accion" value="registrar">
 
-        <!--
-            Aquí van los campos
-            correspondientes a la variante
-        -->
+        <input type="text" name="usuario" placeholder="Usuario" required>
+
+        <input type="text" name="asunto" placeholder="Asunto" required>
+
+        <select name="prioridad">
+            <option value="BAJA">BAJA</option>
+            <option value="MEDIA">MEDIA</option>
+            <option value="ALTA">ALTA</option>
+        </select>
 
         <button type="submit">
             Registrar
@@ -92,7 +79,7 @@ if (!empty($_GET["buscar"])) {
     <hr>
 
 
-    <!-- FORMULARIO DE BÚSQUEDA -->
+  Formulario Búsqueda
 
     <form method="GET">
 
@@ -111,13 +98,18 @@ if (!empty($_GET["buscar"])) {
     <hr>
 
 
-    <!-- LISTADO -->
+ Listado 
 
     <table border="1" cellpadding="5">
 
         <thead>
             <tr>
-                <!-- columnas -->
+                <th>ID</th>
+                <th>Usuario</th>
+                <th>Asunto</th>
+                <th>Prioridad</th>
+                <th>Estado</th>
+                <th>Acción</th>
             </tr>
         </thead>
 
@@ -127,7 +119,11 @@ if (!empty($_GET["buscar"])) {
 
                 <tr>
 
-                    <!-- datos -->
+                    <td><?= $item["id"] ?></td>
+                    <td><?= $item["usuario"] ?></td>
+                    <td><?= $item["asunto"] ?></td>
+                    <td><?= $item["prioridad"] ?></td>
+                    <td><?= $item["estado"] ?></td>
 
                     <td>
 
