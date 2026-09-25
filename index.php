@@ -2,11 +2,12 @@
 
 require_once "config/Autoload.php";
 
-// TODO:
-// importar el BO correspondiente
-// instanciar el objeto BO correspondiente
+use bo\Incidencia;
+
+$bo = new Incidencia();
 
 $registros = [];
+$mensaje = "";
 
 /*
 |--------------------------------------------------------------------------
@@ -18,9 +19,15 @@ if (
     $_SERVER["REQUEST_METHOD"] === "POST"
     && ($_POST["accion"] ?? "") === "registrar"
 ) {
+    $resultado = $bo->registrar(
+        $_POST["usuario"] ?? "",
+        $_POST["asunto"] ?? "",
+        $_POST["prioridad"] ?? ""
+    );
 
-    // TODO:
-    // llamar al método registrar()
+    $mensaje = $resultado
+        ? "Incidencia registrada correctamente."
+        : "No se pudo registrar la incidencia. Revisa los datos enviados.";
 }
 
 
@@ -34,9 +41,10 @@ if (
     $_SERVER["REQUEST_METHOD"] === "POST"
     && ($_POST["accion"] ?? "") === "cambiarEstado"
 ) {
-
-    // TODO:
-    // llamar al método cambiarEstado()
+    $id = (int) ($_POST["id"] ?? 0);
+    $mensaje = $bo->cambiarEstado($id)
+        ? "Estado actualizado correctamente."
+        : "No se pudo actualizar el estado.";
 }
 
 
@@ -47,14 +55,9 @@ if (
 */
 
 if (!empty($_GET["buscar"])) {
-
-    // TODO:
-    // llamar al método buscar()
-
+    $registros = $bo->buscar((string) $_GET["buscar"]);
 } else {
-
-    // TODO:
-    // llamar al método listar()
+    $registros = $bo->listar();
 }
 
 ?>
@@ -71,16 +74,34 @@ if (!empty($_GET["buscar"])) {
 
     <h1>Gestión de registros</h1>
 
+    <?php if ($mensaje !== ""): ?>
+        <p><?= htmlspecialchars($mensaje, ENT_QUOTES, "UTF-8") ?></p>
+    <?php endif; ?>
+
     <!-- FORMULARIO DE REGISTRO -->
 
     <form method="POST">
 
         <input type="hidden" name="accion" value="registrar">
 
-        <!--
-            Aquí van los campos
-            correspondientes a la variante
-        -->
+        <label>
+            Usuario
+            <input type="text" name="usuario" required>
+        </label>
+
+        <label>
+            Asunto
+            <input type="text" name="asunto" required>
+        </label>
+
+        <label>
+            Prioridad
+            <select name="prioridad" required>
+                <option value="ALTA">Alta</option>
+                <option value="MEDIA" selected>Media</option>
+                <option value="BAJA">Baja</option>
+            </select>
+        </label>
 
         <button type="submit">
             Registrar
@@ -117,7 +138,12 @@ if (!empty($_GET["buscar"])) {
 
         <thead>
             <tr>
-                <!-- columnas -->
+                <th>ID</th>
+                <th>Usuario</th>
+                <th>Asunto</th>
+                <th>Prioridad</th>
+                <th>Estado</th>
+                <th>Acción</th>
             </tr>
         </thead>
 
@@ -126,8 +152,11 @@ if (!empty($_GET["buscar"])) {
             <?php foreach ($registros as $item): ?>
 
                 <tr>
-
-                    <!-- datos -->
+                    <td><?= (int) $item["id"] ?></td>
+                    <td><?= htmlspecialchars($item["usuario"], ENT_QUOTES, "UTF-8") ?></td>
+                    <td><?= htmlspecialchars($item["asunto"], ENT_QUOTES, "UTF-8") ?></td>
+                    <td><?= htmlspecialchars($item["prioridad"], ENT_QUOTES, "UTF-8") ?></td>
+                    <td><?= htmlspecialchars($item["estado"], ENT_QUOTES, "UTF-8") ?></td>
 
                     <td>
 
