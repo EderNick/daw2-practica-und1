@@ -2,11 +2,12 @@
 
 require_once "config/Autoload.php";
 
-// TODO:
-// importar el BO correspondiente
-// instanciar el objeto BO correspondiente
+use bo\Prestamo as PrestamoBO;
+
+$prestamoBO = new PrestamoBO();
 
 $registros = [];
+$mensaje = "";
 
 /*
 |--------------------------------------------------------------------------
@@ -19,8 +20,17 @@ if (
     && ($_POST["accion"] ?? "") === "registrar"
 ) {
 
-    // TODO:
-    // llamar al método registrar()
+    try {
+        $prestamoBO->registrar(
+            $_POST["estudiante"] ?? "",
+            $_POST["equipo"] ?? "",
+            $_POST["fecha"] ?? ""
+        );
+        header("Location: index.php");
+        exit;
+    } catch (Exception $e) {
+        $mensaje = $e->getMessage();
+    }
 }
 
 
@@ -35,8 +45,13 @@ if (
     && ($_POST["accion"] ?? "") === "cambiarEstado"
 ) {
 
-    // TODO:
-    // llamar al método cambiarEstado()
+    try {
+        $prestamoBO->cambiarEstado((int) ($_POST["id"] ?? 0));
+        header("Location: index.php");
+        exit;
+    } catch (Exception $e) {
+        $mensaje = $e->getMessage();
+    }
 }
 
 
@@ -48,13 +63,11 @@ if (
 
 if (!empty($_GET["buscar"])) {
 
-    // TODO:
-    // llamar al método buscar()
+    $registros = $prestamoBO->buscar($_GET["buscar"]);
 
 } else {
 
-    // TODO:
-    // llamar al método listar()
+    $registros = $prestamoBO->listar();
 }
 
 ?>
@@ -71,16 +84,21 @@ if (!empty($_GET["buscar"])) {
 
     <h1>Gestión de registros</h1>
 
+    <?php if ($mensaje !== ""): ?>
+        <p><b><?= htmlspecialchars($mensaje) ?></b></p>
+    <?php endif; ?>
+
     <!-- FORMULARIO DE REGISTRO -->
 
     <form method="POST">
 
         <input type="hidden" name="accion" value="registrar">
 
-        <!--
-            Aquí van los campos
-            correspondientes a la variante
-        -->
+        <input type="text" name="estudiante" placeholder="Estudiante" required>
+
+        <input type="text" name="equipo" placeholder="Equipo" required>
+
+        <input type="date" name="fecha" value="<?= date("Y-m-d") ?>" required>
 
         <button type="submit">
             Registrar
@@ -99,7 +117,8 @@ if (!empty($_GET["buscar"])) {
         <input
             type="text"
             name="buscar"
-            placeholder="Buscar">
+            value="<?= htmlspecialchars($_GET["buscar"] ?? "") ?>"
+            placeholder="Buscar por estudiante">
 
         <button type="submit">
             Buscar
@@ -117,7 +136,12 @@ if (!empty($_GET["buscar"])) {
 
         <thead>
             <tr>
-                <!-- columnas -->
+                <th>ID</th>
+                <th>Estudiante</th>
+                <th>Equipo</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Operacion</th>
             </tr>
         </thead>
 
@@ -127,7 +151,11 @@ if (!empty($_GET["buscar"])) {
 
                 <tr>
 
-                    <!-- datos -->
+                    <td><?= $item["id"] ?></td>
+                    <td><?= htmlspecialchars($item["estudiante"]) ?></td>
+                    <td><?= htmlspecialchars($item["equipo"]) ?></td>
+                    <td><?= $item["fecha"] ?></td>
+                    <td><?= $item["estado"] ?></td>
 
                     <td>
 
@@ -144,7 +172,7 @@ if (!empty($_GET["buscar"])) {
                                 value="<?= $item["id"] ?>">
 
                             <button type="submit">
-                                Cambiar estado
+                                Marcar como DEVUELTO
                             </button>
 
                         </form>
