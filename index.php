@@ -4,9 +4,15 @@ require_once "config/Autoload.php";
 
 // TODO:
 // importar el BO correspondiente
+use bo\Equipo as EquipoBO;
+
 // instanciar el objeto BO correspondiente
+$equipoBO = new EquipoBO();
 
 $registros = [];
+$buscar = isset($_GET["buscar"]) && is_string($_GET["buscar"])
+    ? trim($_GET["buscar"])
+    : "";
 
 /*
 |--------------------------------------------------------------------------
@@ -21,6 +27,13 @@ if (
 
     // TODO:
     // llamar al método registrar()
+    $codigo = trim($_POST["codigo"] ?? "");
+    $nombre = trim($_POST["nombre"] ?? "");
+    $categoria = trim($_POST["categoria"] ?? "");
+
+    if (!empty($codigo) && !empty($nombre) && !empty($categoria)) {
+        $equipoBO->registrar($codigo, $nombre, $categoria);
+    }
 }
 
 
@@ -37,6 +50,10 @@ if (
 
     // TODO:
     // llamar al método cambiarEstado()
+    $id = intval($_POST["id"] ?? 0);
+    if ($id > 0) {
+        $equipoBO->cambiarEstado($id);
+    }
 }
 
 
@@ -46,15 +63,17 @@ if (
 |--------------------------------------------------------------------------
 */
 
-if (!empty($_GET["buscar"])) {
+if ($buscar !== "") {
 
     // TODO:
     // llamar al método buscar()
+    $registros = $equipoBO->buscar($buscar);
 
 } else {
 
     // TODO:
     // llamar al método listar()
+    $registros = $equipoBO->listar();
 }
 
 ?>
@@ -81,6 +100,9 @@ if (!empty($_GET["buscar"])) {
             Aquí van los campos
             correspondientes a la variante
         -->
+        <label>Código: <input type="text" name="codigo" required></label>
+        <label>Nombre: <input type="text" name="nombre" required></label>
+        <label>Categoría: <input type="text" name="categoria" required></label>
 
         <button type="submit">
             Registrar
@@ -99,7 +121,8 @@ if (!empty($_GET["buscar"])) {
         <input
             type="text"
             name="buscar"
-            placeholder="Buscar">
+            placeholder="Buscar"
+            value="<?= htmlspecialchars($buscar, ENT_QUOTES, 'UTF-8') ?>">
 
         <button type="submit">
             Buscar
@@ -118,6 +141,12 @@ if (!empty($_GET["buscar"])) {
         <thead>
             <tr>
                 <!-- columnas -->
+                <th>ID</th>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Estado</th>
+                <th>Acción</th>
             </tr>
         </thead>
 
@@ -128,6 +157,11 @@ if (!empty($_GET["buscar"])) {
                 <tr>
 
                     <!-- datos -->
+                    <td><?= $item->getId() ?></td>
+                    <td><?= $item->getCodigo() ?></td>
+                    <td><?= $item->getNombre() ?></td>
+                    <td><?= $item->getCategoria() ?></td>
+                    <td><?= $item->getEstado() ?></td>
 
                     <td>
 
@@ -141,7 +175,7 @@ if (!empty($_GET["buscar"])) {
                             <input
                                 type="hidden"
                                 name="id"
-                                value="<?= $item["id"] ?>">
+                                value="<?= $item->getId() ?>">
 
                             <button type="submit">
                                 Cambiar estado
